@@ -63,6 +63,7 @@ class InspirePybulletIK(Node):
         # Thread-safe shared variable for glove data
         self.data_lock = threading.Lock()
         self.latest_hand_pos = None
+        self.latest_hand_angles = None
         self.data_updated = False  # Flag to indicate new data availability
 
 
@@ -248,20 +249,22 @@ class InspirePybulletIK(Node):
         """Main PyBullet simulation loop to update the hand model."""
         while rclpy.ok():
             with self.data_lock:
-                if self.data_updated and self.latest_hand_pos is not None:
+                if self.data_updated and self.latest_hand_angles is not None and self.latest_hand_pos is not None:
+                    hand_angles = self.latest_hand_angles
                     hand_pos = self.latest_hand_pos
                     #print(str(hand_pos))
                     self.data_updated = False  # Reset the update flag
                 else:
                     hand_pos = None
+                    hand_angles = None
 
-            if hand_pos is not None:
+            if hand_pos is not None and hand_angles is not None :
                 self.update_hand_orientation(self.wrist_quat)
                 #self.compute_IK2(hand_pos)
                 self.update_target_vis(hand_pos)
                 #self.get_logger().info("Hand model updated with new data.")
 
-            p.stepSimulation()
+            #p.stepSimulation()
             time.sleep(1 / 30)  # Run the simulation at approximately 30 FPS
 
 
